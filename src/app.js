@@ -4,9 +4,16 @@ const app = express();
 // middleware
 app.use(express.json())
 
-app.get('/',(req,res)=>{
-    res.status(200).json("Hello, Srushti!! From the server!")
-})
+app.get('/',(req,res,next)=>{
+    // res.status(200).json("Hello, Srushti!! From the server!")
+     next();
+},
+(req,res,next)=>{
+    console.log("HIII,,new One!!");
+    res.status(200).json("Hii Srushtii!! welcome to new api")
+}
+
+)
 
 app.get('/hello/2',(req,res)=>{
     res.status(200).json("Abra ka Dabra!")
