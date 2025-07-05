@@ -29,6 +29,11 @@ app.delete('/user',(req,res)=>{
     res.status(200).json("Delete")
 })
 
+app.get('/home',(req,res)=>{
+    console.log("You are in Home Page now!");
+    res.status(200).json("Home Page");
+})
+
 
 app.listen(3000,()=>{
     console.log("Server is running on port 3000!")
