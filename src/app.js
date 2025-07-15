@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const UserLogin = require('UserLogin');
 
 // middleware
 app.use(express.json())
@@ -14,6 +15,22 @@ app.get('/',(req,res,next)=>{
 }
 
 )
+
+app.get("/admin/getAllData",(req,res)=>{
+    const token = req.query.token;
+    const isAdminAuth = token === 'xyz';
+
+    if(isAdminAuth){
+        res.status(200).json("All Data Sent!")
+    }
+    else{
+        res.status(404).json("Unauthorized data!")
+    }
+
+})
+
+
+app.get('/user/login',UserLogin)
 
 app.get('/hello/2',(req,res)=>{
     res.status(200).json("Abra ka Dabra!")
