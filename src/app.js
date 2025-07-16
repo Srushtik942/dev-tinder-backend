@@ -1,57 +1,40 @@
 const express = require('express');
 const app = express();
-const UserLogin = require('UserLogin');
+const connectDb = require("./config/database");
+const User = require("./model/user");
 
 // middleware
 app.use(express.json())
 
-app.get('/',(req,res,next)=>{
-    // res.status(200).json("Hello, Srushti!! From the server!")
-     next();
-},
-(req,res,next)=>{
-    console.log("HIII,,new One!!");
-    res.status(200).json("Hii Srushtii!! welcome to new api")
-}
 
-)
+app.post("/signup",async(req,res)=>{
+    try{
+        const {firstName, lastName, emailId, password} = req.body;
+        console.log(req.body);
 
-app.get("/admin/getAllData",(req,res)=>{
-    const token = req.query.token;
-    const isAdminAuth = token === 'xyz';
+        if(!emailId || !password){
+            return res.status(400).json({message:"Check your request body again!"})
+        }
 
-    if(isAdminAuth){
-        res.status(200).json("All Data Sent!")
+        const newUser = await User.create({firstName,lastName, emailId, password})
+
+        return res.status(200).json({message:"User created successfully!", newUser});
+
+    }catch(error){
+        return res.status(500).json({message:"Internal Server Error!",error});
     }
-    else{
-        res.status(404).json("Unauthorized data!")
-    }
-
 })
 
 
-app.get('/user/login',UserLogin)
 
-app.get('/hello/2',(req,res)=>{
-    res.status(200).json("Abra ka Dabra!")
-})
-
-app.post('/user',(req,res)=>{
-    console.log("Save data to the DB");
-    res.status(200).json("Saved data to db!")
-})
-
-app.delete('/user',(req,res)=>{
-    console.log("Deleted User Successfully!");
-    res.status(200).json("Delete")
-})
-
-app.get('/home',(req,res)=>{
-    console.log("You are in Home Page now!");
-    res.status(200).json("Home Page");
-})
-
-
-app.listen(3000,()=>{
+connectDb().then(()=>{
+    console.log("Connection established sccessfully!");
+    app.listen(3000,()=>{
     console.log("Server is running on port 3000!")
 })
+
+}).catch((error)=>{
+    console.log("Coudn't established the connection!",error)
+});
+
+
