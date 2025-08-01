@@ -25,6 +25,64 @@ app.post("/signup",async(req,res)=>{
     }
 })
 
+// get user by mail
+app.get('/user',async(req,res)=>{
+ const UserEmail = req.body.emailId;
+    try{
+        const user = await User.findOne({emailId: UserEmail});
+
+        if(!user){
+            return res.status(404).json("USer not found!");
+        }
+
+       return res.status(200).json({message:"User has been fetched successfully!", user});
+
+    }catch(error){
+        return res.status(500).json({message:"Internal Server Error", error:error.message});
+    }
+})
+
+
+app.get('/feed',async(req,res)=>{
+    try{
+        const UserData = await User.find({});
+
+        if(UserData.length === 0){
+            return res.status(404).json("No users found!")
+        }
+
+        return res.status(200).json({UserData});
+    }catch(error){
+        return res.status(500).json({message: "Internal Server Error", error: error.message});
+    }
+})
+
+// delete user
+
+app.delete("/user",async(req,res)=>{
+    const userId = req.body.userId;
+    try{
+        const UserData = await User.findByIdAndDelete(userId);
+
+        return res.status(200).json("User Deleted successfully!");
+
+    }catch(error){
+        return res.status(500).json({message:"Internal Server Error", error: error.message});
+    }
+})
+
+// update user
+
+app.put('/user',async(req,res)=>{
+    const userId = req.bodyuserId;
+    const data = req.body;
+    try{
+   await User.findByIdAndUpdate(userId, data,{new:true});
+  res.status(200).json({message:"User updated successfully!",data})
+    }catch(error){
+        return res.status(500).json({message:"Internal Server Error", error: error.message});
+    }
+})
 
 
 connectDb().then(()=>{
