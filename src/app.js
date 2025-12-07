@@ -1,98 +1,53 @@
 const express = require('express');
 const app = express();
+const  User = require("./model/user")
 const connectDb = require("./config/database");
-const User = require("./model/user");
+connectDb();
+const bcrypt = require("bcrypt");
 
 // middleware
 app.use(express.json())
 
+app.get('/',(req,res)=>{
+    res.status(200).json("Hello, Srushti!! From the server!")
+})
 
 app.post("/signup",async(req,res)=>{
     try{
-        const {firstName, lastName, emailId, password} = req.body;
-        console.log(req.body);
+        const {firstName, lastName, emailId, password, photoUrl,bio, skills } = req.body;
 
-        if(!emailId || !password){
-            return res.status(400).json({message:"Check your request body again!"})
+        if(!firstName || !lastName || !emailId || !password){
+            res.status(400).json({error:"All fields are required"});
         }
+      console.log(req.body);
 
-        const newUser = await User.create({firstName,lastName, emailId, password})
+      const existingUser = await User.findOne({emailId: emailId});
 
-        return res.status(200).json({message:"User created successfully!", newUser});
+      if(existingUser){
+        res.status(404).json({error:"User already exists"});
+      }
+
+    const hasedPass = await bcrypt.hash(password, 10);
+
+        const newUser = new User({
+            firstName,
+            lastName,
+            emailId,
+            password:hasedPass,
+            photoUrl,
+            bio,
+            skills
+        })
+        await newUser.save();
+        res.status(200).json({message:"User successfully registerd!",newUser})
+
 
     }catch(error){
-        return res.status(500).json({message:"Internal Server Error!",error});
-    }
-})
-
-// get user by mail
-app.get('/user',async(req,res)=>{
- const UserEmail = req.body.emailId;
-    try{
-        const user = await User.findOne({emailId: UserEmail});
-
-        if(!user){
-            return res.status(404).json("USer not found!");
-        }
-
-       return res.status(200).json({message:"User has been fetched successfully!", user});
-
-    }catch(error){
-        return res.status(500).json({message:"Internal Server Error", error:error.message});
-    }
-})
-
-
-app.get('/feed',async(req,res)=>{
-    try{
-        const UserData = await User.find({});
-
-        if(UserData.length === 0){
-            return res.status(404).json("No users found!")
-        }
-
-        return res.status(200).json({UserData});
-    }catch(error){
-        return res.status(500).json({message: "Internal Server Error", error: error.message});
-    }
-})
-
-// delete user
-
-app.delete("/user",async(req,res)=>{
-    const userId = req.body.userId;
-    try{
-        const UserData = await User.findByIdAndDelete(userId);
-
-        return res.status(200).json("User Deleted successfully!");
-
-    }catch(error){
-        return res.status(500).json({message:"Internal Server Error", error: error.message});
-    }
-})
-
-// update user
-
-app.put('/user',async(req,res)=>{
-    const userId = req.bodyuserId;
-    const data = req.body;
-    try{
-   await User.findByIdAndUpdate(userId, data,{new:true});
-  res.status(200).json({message:"User updated successfully!",data})
-    }catch(error){
-        return res.status(500).json({message:"Internal Server Error", error: error.message});
+        res.status(500).json({messsage:"Internal Server Error",error:error.message});
     }
 })
 
 
-connectDb().then(()=>{
-    console.log("Connection established sccessfully!");
-    app.listen(3000,()=>{
+app.listen(3000,()=>{
     console.log("Server is running on port 3000!")
 })
-
-}).catch((error)=>{
-    console.log("Coudn't established the connection!",error)
-});
-
-
