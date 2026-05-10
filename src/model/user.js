@@ -1,10 +1,12 @@
 const mongoose =  require("mongoose");
 
 // creating userSchema
-const userSchema = new mongoose.Schema({
+const devUserSchema = new mongoose.Schema({
     firstName:{
        type: String,
        required: true,
+       minLength: 4,
+       maxLength: 20
     },
     lastName:{
         type:String,
@@ -14,7 +16,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         lowercase:true,
         required:true,
-        unique:true
+        unique:true,
+        trim: true
     },
     DOB:{
         type: Number
@@ -41,7 +44,12 @@ const userSchema = new mongoose.Schema({
     skills:{
         type:[String],
     }
-});
+},
+{
+    timestamps: true
+}
+
+);
 
 // creating user model
-module.exports = mongoose.model("User",userSchema);
+module.exports = mongoose.model("User",devUserSchema);

@@ -1,11 +1,26 @@
-const UserLogin = (req, res) => {
-    const login = req.query.login;
+const jwt = require("jsonwebtoken");
 
-    if (login === "xyz") {
-        res.status(200).json("User LoggedIn Successfully!");
-    } else {
-        res.status(404).json("Please check your credentials");
+const authUser = (req, res, next) => {
+    try {
+        const token = req.headers.authorization;
+
+        if (!token) {
+            return res.status(401).json({
+                error: "Token missing"
+            });
+        }
+
+        const decodedObj = jwt.verify(token, "SECRET_KEY");
+
+        req.user = decodedObj;
+
+        next();
+
+    } catch (error) {
+        res.status(401).json({
+            error: "Invalid token"
+        });
     }
 };
 
-module.exports = UserLogin;
+module.exports = authUser;
