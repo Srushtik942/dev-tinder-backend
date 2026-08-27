@@ -4,16 +4,18 @@ const  devUser = require("./src/model/user")
 const connectDb = require("./src/config/database");
 connectDb();
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const authUser = require("./src/middleware/userLogin");
 
 // middleware
-app.use(express.json())
+app.use(express.json());
+app.use(cookieParser());
 
 app.get('/',(req,res)=>{
     res.status(200).json("Hello, Srushti!! From the server!")
 })
-
+// sign up
 app.post("/signup",async(req,res)=>{
     try{
         const {firstName, lastName, emailId, password, photoUrl,bio, skills } = req.body;
@@ -53,6 +55,7 @@ app.post("/signup",async(req,res)=>{
     }
 })
 
+// login
 app.post("/login", async (req, res) => {
     try {
         const { emailId, password } = req.body;
@@ -88,9 +91,13 @@ app.post("/login", async (req, res) => {
             { expiresIn: "1d" }
         );
 
+        res.cookie("token",token,{
+           httpOnly: true,
+           maxAge: 24 * 60 * 60 * 1000
+        })
         res.status(200).json({
-            message: "Login successful!",
-            token
+            message: "Login successful!"
+            // token
         });
 
     } catch (error) {
@@ -101,10 +108,25 @@ app.post("/login", async (req, res) => {
     }
 });
 
+app.get("/profile",async(req,res)=>{
+    try{
+
+         const cookies = req.cookies;
+
+        console.log(cookies)
+        res.send("Reading cookies");
+
+    }catch(err){
+        res.status(500).json({message:"Internal Server Error",error:err.message});
+    }
+})
+
+// get a user
 app.get("/userProfile", authUser, async(req,res)=>{
     try{
         const emailId = req.query.emailId;
         const userData = await devUser.findOne({emailId:emailId});
+
         console.log("userData",userData);
         if(!userData){
             res.status(404).json({message:"User data not found!"})
