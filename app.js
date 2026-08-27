@@ -1,11 +1,11 @@
 const express = require('express');
 const app = express();
-const  devUser = require("./model/user")
-const connectDb = require("./config/database");
+const  devUser = require("./src/model/user")
+const connectDb = require("./src/config/database");
 connectDb();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const authUser = require("./middleware/userLogin");
+const authUser = require("./src/middleware/userLogin");
 
 // middleware
 app.use(express.json())
@@ -22,6 +22,10 @@ app.post("/signup",async(req,res)=>{
             res.status(400).json({error:"All fields are required"});
         }
       console.log(req.body);
+
+      if(password.length >15 && password.length < 7){
+        throw error("Max length of password is 15 and min length is 7.")
+      }
 
       const existingUser = await devUser.findOne({emailId: emailId});
 
@@ -118,6 +122,24 @@ app.patch("/updateProfile/:userId", authUser, async(req,res)=>{
 try{
 const userId = req.params.userId;
 const data = req.body;
+
+// api level validation
+
+const allowed_updates = [
+    "photoUrl", "about","gender", "bio","skills"
+]
+
+const isUpdateAllowed = Object.keys(data).every((k)=>allowed_updates.includes(k));
+
+if(!isUpdateAllowed){
+    // res.status(400).json({message:"Update not allowed"})
+    throw new Error("Update not allowed!");
+}
+
+if(data?.skills?.length > 10){
+    throw error("Skills caannot be more than 10")
+}
+
 
 const updatedProfile = await devUser.findByIdAndUpdate(userId,data,{new:true});
 console.log("updatedProfile",updatedProfile);
